@@ -1,0 +1,43 @@
+services:
+  ollama:
+    image: dustynv/ollama:r36.4-cu129-24.04
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - OLLAMA_KEEP_ALIVE=10m
+      - OLLAMA_NUM_GPU=1
+      - OLLAMA_CONTEXT_LENGTH=2048
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_FLASH_ATTENTION=false
+    volumes:
+      - ./ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    entrypoint: ["/bin/bash", "-lc"]
+    command: ["ollama serve"]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:11434/api/tags"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+    restart: unless-stopped
+
+  chat:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.10-slim
+        WORKDIR /app
+        RUN pip install --no-cache-dir flask requests
+        COPY simple-chat.py /app/
+        CMD ["python", "simple-chat.py"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - MODEL_NAME=qwen2.5:3b
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

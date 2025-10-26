@@ -1,0 +1,64 @@
+services:
+  ollama:
+    image: dustynv/ollama:r36.4-cu129-24.04
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      
+      # Balanced settings for 1.5B model
+      - OLLAMA_KEEP_ALIVE=5m
+      - OLLAMA_NUM_GPU=1
+      - OLLAMA_CONTEXT_LENGTH=512
+      - OLLAMA_KV_CACHE_TYPE=q8_0
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_FLASH_ATTENTION=false
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_NUM_BATCH=8
+      
+    volumes:
+      - ./ollama:/root/.ollama
+    entrypoint: ["/bin/bash", "-lc"]
+    command: ["ollama serve"]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:11434/api/tags"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+
+  rag:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      
+      # Better model - 3x larger than 0.5b
+      - GEN_MODEL=qwen2.5:1.5b
+      - EMB_MODEL=nomic-embed-text
+      
+      # Balanced settings
+      - RAG_TOP_K=3
+      - RAG_INSERT_BATCH=32
+      - NUM_CTX=512
+      - NUM_BATCH=8
+      
+    volumes:
+      - ./data:/app/data
+      - ./storage:/app/storage
+    ports:
+      - "7860:7860"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 800M
