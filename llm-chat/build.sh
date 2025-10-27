@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build script for Simple LLM Chat with Gemma-3-4B model
 # Automatically downloads and imports GGUF model into Ollama
+# Final working version with all fixes
 
 set -euo pipefail
 
@@ -19,8 +20,8 @@ if [ ! -f "simple-chat.py" ]; then
     exit 1
 fi
 
-if [ ! -f "docker-compose-chat.yaml" ]; then
-    echo "ERROR: docker-compose-chat.yaml not found in current directory"
+if [ ! -f "docker-compose.yaml" ]; then
+    echo "ERROR: docker-compose.yaml not found in current directory"
     exit 1
 fi
 
@@ -32,27 +33,32 @@ read -p "Clean start? This will stop containers and remove old models (y/n) " -n
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "[*] Stopping containers..."
-    docker compose -f docker-compose-chat.yaml down 2>/dev/null || true
+    docker compose -f docker-compose.yaml down 2>/dev/null || true
     
     echo "[*] Cleaning up old model files..."
     rm -f gemma-3-4b-it-abliterated-q5_k_m.gguf
     rm -f Modelfile
+    rm -rf ollama
     
     echo "    ✓ Clean slate ready"
 fi
 
 echo ""
+echo "[*] Creating ollama directory for persistent storage..."
+mkdir -p ollama
+
+echo ""
 echo "[*] Building Docker containers..."
-docker compose -f docker-compose-chat.yaml build
+docker compose -f docker-compose.yaml build
 
 echo ""
 echo "[*] Starting Ollama service..."
-docker compose -f docker-compose-chat.yaml up -d ollama
+docker compose -f docker-compose.yaml up -d ollama
 
 echo ""
 echo "[*] Waiting for Ollama to be ready (60 seconds max)..."
 for i in {1..60}; do
-  if docker compose -f docker-compose-chat.yaml exec -T ollama curl -sf http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+  if docker compose -f docker-compose.yaml exec -T ollama curl -sf http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
     echo "    ✓ Ollama is ready!"
     break
   fi
@@ -116,38 +122,31 @@ if [ $FILE_SIZE_MB -lt 2500 ]; then
 fi
 
 echo ""
-echo "[*] Creating Ollama Modelfile..."
+echo "[*] Creating Ollama Modelfile with proper stop tokens..."
 cat > Modelfile << 'EOF'
 FROM ./gemma-3-4b-it-abliterated-q5_k_m.gguf
 
-TEMPLATE """{{ if .System }}<|start_header_id|>system<|end_header_id|>
-
-{{ .System }}<|eot_id|>{{ end }}{{ if .Prompt }}<|start_header_id|>user<|end_header_id|>
-
-{{ .Prompt }}<|eot_id|>{{ end }}<|start_header_id|>assistant<|end_header_id|>
-
-{{ .Response }}<|eot_id|>"""
-
-PARAMETER stop "<|start_header_id|>"
-PARAMETER stop "<|end_header_id|>"
-PARAMETER stop "<|eot_id|>"
 PARAMETER temperature 0.7
 PARAMETER top_p 0.9
 PARAMETER num_ctx 2048
+PARAMETER stop "<|end|>"
+PARAMETER stop "<|eot_id|>"
+PARAMETER stop "</s>"
+PARAMETER stop "<end>"
 EOF
 
 echo "    ✓ Modelfile created"
 
 echo ""
-echo "[*] Copying files into Ollama container..."
-docker cp "$MODEL_FILE" llm-chat-ollama-1:/root/
-docker cp Modelfile llm-chat-ollama-1:/root/
+echo "[*] Copying files to persistent volume..."
+cp "$MODEL_FILE" ollama/
+cp Modelfile ollama/
 
-echo "    ✓ Files copied"
+echo "    ✓ Files copied to ollama directory"
 
 echo ""
 echo "[*] Importing model into Ollama (this may take 2-5 minutes)..."
-docker compose -f docker-compose-chat.yaml exec -T ollama ollama create gemma-3-4b -f /root/Modelfile
+docker compose -f docker-compose.yaml exec -T ollama ollama create gemma-3-4b -f /root/.ollama/Modelfile
 
 if [ $? -ne 0 ]; then
     echo ""
@@ -158,18 +157,18 @@ fi
 
 echo ""
 echo "[*] Verifying model is loaded..."
-docker compose -f docker-compose-chat.yaml exec -T ollama ollama list
+docker compose -f docker-compose.yaml exec -T ollama ollama list
 
 echo ""
 echo "[*] Starting chat interface..."
-docker compose -f docker-compose-chat.yaml up -d chat
+docker compose -f docker-compose.yaml up -d chat
 
 echo ""
 echo "[*] Waiting for chat interface to start (10 seconds)..."
 sleep 10
 
 echo ""
-if docker compose -f docker-compose-chat.yaml ps chat | grep -q "Up"; then
+if docker compose -f docker-compose.yaml ps chat | grep -q "Up"; then
   echo "=========================================="
   echo "✅ SUCCESS - Chat Interface Running!"
   echo "=========================================="
@@ -184,22 +183,24 @@ if docker compose -f docker-compose-chat.yaml ps chat | grep -q "Up"; then
   echo "   • Quality:   High (4 billion parameters)"
   echo "   • Context:   2048 tokens"
   echo "   • Uncensored: Yes (abliterated version)"
+  echo "   • Persistent: Models saved in ./ollama/"
   echo ""
   echo "✨ Features:"
   echo "   ✓ Beautiful gradient UI"
   echo "   ✓ Conversation memory"
   echo "   ✓ Mobile responsive"
   echo "   ✓ Clear chat button"
+  echo "   ✓ Models persist across restarts"
   echo ""
   echo "📝 Commands:"
   echo "   • View logs:  docker compose logs -f chat"
   echo "   • Stop:       docker compose down"
-  echo "   • Restart:    docker compose restart chat"
+  echo "   • Restart:    docker compose restart"
   echo "   • Status:     docker compose ps"
   echo ""
   echo "💡 Test it:"
   echo "   1. Open http://localhost:8080 in browser"
-  echo "   2. Type: 'Hello, tell me about yourself'"
+  echo "   2. Type: 'What is pi?'"
   echo "   3. First response may take 10-20 seconds (model loading)"
   echo "   4. Enjoy intelligent conversation!"
   echo ""
@@ -228,15 +229,17 @@ echo ""
 echo "Files created:"
 echo "  • $MODEL_FILE ($(du -h "$MODEL_FILE" | cut -f1))"
 echo "  • Modelfile"
+echo "  • ollama/ (persistent storage)"
 echo ""
 echo "Docker containers:"
-docker compose -f docker-compose-chat.yaml ps
+docker compose -f docker-compose.yaml ps
 echo ""
 echo "Available models:"
-docker compose -f docker-compose-chat.yaml exec -T ollama ollama list
+docker compose -f docker-compose.yaml exec -T ollama ollama list
 echo ""
 echo "Disk usage:"
 du -sh .
+du -sh ollama
 echo ""
 echo "GPU Memory (check with: sudo jtop):"
 echo "  • Expected usage: ~4-5 GB GPU RAM"
@@ -245,3 +248,6 @@ echo ""
 echo "=========================================="
 echo "Build Complete! 🚀"
 echo "=========================================="
+echo ""
+echo "Note: Models are now persistent in ./ollama/"
+echo "Containers can be restarted without losing the model!"

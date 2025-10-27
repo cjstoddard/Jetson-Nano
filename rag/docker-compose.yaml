@@ -41,12 +41,8 @@ services:
         condition: service_healthy
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
-      
-      # Better model - 3x larger than 0.5b
       - GEN_MODEL=qwen2.5:1.5b
       - EMB_MODEL=nomic-embed-text
-      
-      # Balanced settings
       - RAG_TOP_K=3
       - RAG_INSERT_BATCH=32
       - NUM_CTX=512
