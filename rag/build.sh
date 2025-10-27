@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-ROOT="${HOME}/rag"
+ROOT="$(pwd)"
 
 echo "=========================================="
 echo "Jetson RAG - Flask Edition"

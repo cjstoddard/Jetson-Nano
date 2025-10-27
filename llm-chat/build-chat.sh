@@ -161,15 +161,6 @@ echo "[*] Verifying model is loaded..."
 docker compose -f docker-compose-chat.yaml exec -T ollama ollama list
 
 echo ""
-echo "[*] Testing model..."
-TEST_RESPONSE=$(docker compose -f docker-compose-chat.yaml exec -T ollama ollama run gemma-3-4b "Say hello" 2>&1)
-if [[ "$TEST_RESPONSE" == *"error"* ]]; then
-    echo "    ⚠ Model test had issues: $TEST_RESPONSE"
-else
-    echo "    ✓ Model responds correctly!"
-fi
-
-echo ""
 echo "[*] Starting chat interface..."
 docker compose -f docker-compose-chat.yaml up -d chat
 
@@ -209,7 +200,11 @@ if docker compose -f docker-compose-chat.yaml ps chat | grep -q "Up"; then
   echo "💡 Test it:"
   echo "   1. Open http://localhost:8080 in browser"
   echo "   2. Type: 'Hello, tell me about yourself'"
-  echo "   3. Enjoy intelligent conversation!"
+  echo "   3. First response may take 10-20 seconds (model loading)"
+  echo "   4. Enjoy intelligent conversation!"
+  echo ""
+  echo "🔍 Manual test (optional):"
+  echo "   docker compose exec ollama ollama run gemma-3-4b 'hello'"
   echo ""
 else
   echo "=========================================="
@@ -243,7 +238,7 @@ echo ""
 echo "Disk usage:"
 du -sh .
 echo ""
-echo "GPU Memory (if you have issues, check with: sudo jtop):"
+echo "GPU Memory (check with: sudo jtop):"
 echo "  • Expected usage: ~4-5 GB GPU RAM"
 echo "  • Model file on disk: ~2.8 GB"
 echo ""
