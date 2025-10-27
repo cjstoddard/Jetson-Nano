@@ -249,5 +249,4 @@ echo "=========================================="
 echo "Build Complete! 🚀"
 echo "=========================================="
 echo ""
-echo "Note: Models are now persistent in ./ollama/"
-echo "Containers can be restarted without losing the model!"
+
