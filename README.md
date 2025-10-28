@@ -11,6 +11,8 @@ As a side note, only llm-chat uses an uncensored model, the others use standard 
 
 All of these applications should be accessble at port 8080, so you can point a web browser at the Nano as such, http://192.168.0.200:8080 and the web interface will come up. If you are deploying them all at once running a on beefier system, you will need to change the ports on a couple of them. Since I only run them one at a time, putting them all on the same port is convient.
 
+If any of these break for no apparent reason, the first thing I would do is re-run the build script and say yes when it asks if you want a clean build. If that does not work, then something has changed, maybe run "docker compose logs -f" to see what is happening.
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
