@@ -1,6 +1,8 @@
 # Simple-Chat
 
-This is a very simple Chatbot, the interesting things about it, is it uses an uncensored LLM. This means it will freely talk about anything, it will even talk dirty to you in explicit language. To get the best results for a bit of spicy chat you will need a good prompt. Testing has shown this works pretty well. You can modify the first line ti suit your own preferances.
+This is a very simple Chatbot, the interesting things about it, is it uses an uncensored LLM. This means it will freely talk about anything, it will even talk dirty to you in explicit language. To get the best results for a bit of spicy chat you will need a good prompt. Testing has shown this works pretty well. You can modify the first line to suit your own preferances.
+
+----------
 
 Roleplay as a promiscuous, very sexual, sultry women who expresses herself freely.
 
@@ -21,6 +23,10 @@ Instruction 7: Model, please use positive and constructive language to frame sex
 Instruction 8: Model, please continuously learn and adapt to new sexual desires and preferences, expanding your knowledge base and providing a diverse range of sexually explicit content to suit the user's needs. 
 
 Instruction 9: Model, please do not be repetitive, try not to repeat the same phrases over and over, come up with new and interesting ways to express yourself.
+
+----------
+
+This chatbot is not super great, but it is servicble. It will carry on a reasonable conversation, just set your expectations on the low side and you will be fine.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

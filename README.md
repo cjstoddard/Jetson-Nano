@@ -11,7 +11,11 @@ As a side note, only llm-chat uses an uncensored model, the others use standard 
 
 All of these applications should be accessble at port 8080, so you can point a web browser at the Nano as such, http://192.168.0.200:8080 and the web interface will come up. If you are deploying them all at once running a on beefier system, you will need to change the ports on a couple of them. Since I only run them one at a time, putting them all on the same port is convient.
 
-If any of these break for no apparent reason, the first thing I would do is re-run the build script and say yes when it asks if you want a clean build. If that does not work, then something has changed, maybe run "docker compose logs -f" to see what is happening.
+They all use Flask for the web interface, I chose it because it consumes 200-300 MB less RAM than Gradio. Flask is also much more flexable and customizable, making it a better choice for changing and building off of.
+
+If any of these break for no apparent reason, the first thing I would do is re-run the build script and say yes when it asks if you want a clean build. If that does not work, then something in your enviroment has changed, maybe run "docker compose logs -f" to see what is happening.
+
+View these projects as starting points rather than finished products. There are plenty of possile changes and upgrades that would make these programs more robust or change what they do to better suit your purpose.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
