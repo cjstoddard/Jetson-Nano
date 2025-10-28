@@ -17,6 +17,28 @@ If any of these break for no apparent reason, the first thing I would do is re-r
 
 View these projects as starting points rather than finished products. There are plenty of possile changes and upgrades that would make these programs more robust or change what they do to better suit your purpose.
 
+----------
+
+Troubleshooting
+
+If any of these break for no apparent reason, the first thing I would do is re-run the build script and say yes when it asks if you want a clean build. If that does not work, then something in your enviroment has changed, maybe run "docker compose logs -f" to see what is happening.
+
+The command "docker compose logs -f" is your best friend, if there is something wrong, it will probably be really obvious what it is by dumping the logs like this. You can copy and paste the output into ChatGPT or Claude and they will analyse it for you. If you ask me for help, the first thing I will do is ask you for the output of this command so I can have Claude or ChatGPT analyse it for me, so you might as well cut out the middle man and do it yourself.
+
+If you are still  having trouble geting one of these to work, chances are good you are simply running out of RAM. All of these run close to the edge, even if it does not appear so. Make sure you shut down containers with "docker compose down" after you are finished using it. Second, install jtop on your system, this is a nice monitoring tool that will give you a great deal of information about what is happening on the device.
+
+> sudo apt update
+
+> sudo apt install python3-pip
+
+> sudo pip3 install -U jetson-stats
+
+> jtop
+
+Once open, if you press 4, it will give you specific information on memory usage, more importantly, on this screen if you press c, it will clear the memory cache. Do not do this while a container is running, it might end badly. Clearing the cache between using these programs will free a couple hundred MB of RAM and is a good best practice.
+
+----------
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
