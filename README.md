@@ -9,6 +9,8 @@ My goal with each of these projects is for each of them to be self contained and
 
 As a side note, only llm-chat uses an uncensored model, the others use standard models with safe guards in place.
 
+All of these applications should be accessble at port 8080, so you can point a web browser at the Nano as such, http://192.168.0.200:8080 and the web interface will come up. If you are deploying them all at once running a on beefier system, you will need to change the ports on a couple of them. Since I only run them one at a time, putting them all on the same port is convient.
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE

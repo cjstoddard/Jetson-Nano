@@ -52,7 +52,7 @@ services:
       - ./data:/app/data
       - ./storage:/app/storage
     ports:
-      - "7860:7860"
+      - "8080:7860"
     restart: unless-stopped
     deploy:
       resources:
