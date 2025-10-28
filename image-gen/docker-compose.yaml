@@ -1,0 +1,44 @@
+services:
+  stable-diffusion:
+    build:
+      context: .
+      dockerfile_inline: |
+        # Use Jetson-compatible base image with PyTorch 2.1 already installed
+        FROM dustynv/pytorch:2.1-r36.2.0
+        
+        WORKDIR /app
+        
+        # Install compatible versions for PyTorch 2.1
+        # diffusers 0.21.4 is compatible with PyTorch 2.1
+        RUN pip3 install --no-cache-dir \
+            transformers==4.35.0 \
+            safetensors==0.4.0 \
+            accelerate==0.24.0 \
+            diffusers==0.21.4 && \
+            pip3 install --no-cache-dir --ignore-installed blinker flask
+        
+        # Create output directory
+        RUN mkdir -p /app/outputs
+        
+        COPY image-gen.py /app/
+        
+        CMD ["python3", "image-gen.py"]
+    
+    runtime: nvidia
+    
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - MODEL_ID=stabilityai/stable-diffusion-2-1-base
+      - PYTHONWARNINGS=ignore
+    
+    volumes:
+      - ./outputs:/app/outputs
+      - ./huggingface-cache:/root/.cache/huggingface
+    
+    ports:
+      - "8081:8081"
+    
+    shm_size: '2gb'
+    
+    restart: unless-stopped
