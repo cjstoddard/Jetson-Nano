@@ -17,6 +17,32 @@ As a side note, only llm-chat uses an uncensored model, the others use standard 
 
 ----------
 
+Installation
+
+> sudo apt install docker-compose docker.io
+
+> sudo usermod -aG docker $USER
+
+> curl -fsSL https://ollama.com/install.sh | sh
+
+> git clone https://github.com/dusty-nv/jetson-containers
+
+> bash jetson-containers/install.sh
+
+> git clone https://github.com/cjstoddard/Jetson-Nano.git
+
+> cd Jetson-Nano
+
+Choose which container you want to build, cd into the folder and run build.sh
+
+> cd llm-chat
+
+> chmod +x build.sh
+
+> ./build.sh
+
+----------
+
 Troubleshooting
 
 If any of these break for no apparent reason, the first thing I would do is re-run the build script and say yes when it asks if you want a clean build. If that does not work, then something in your enviroment has changed, maybe run "docker compose logs -f" to see what is happening.
