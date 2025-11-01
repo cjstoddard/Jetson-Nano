@@ -144,80 +144,69 @@ HTML_TEMPLATE = """
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #B22222 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
         .container { max-width: 1400px; margin: 0 auto; }
         .header {
-            background: linear-gradient(135deg, #2c1810 0%, #3d2415 100%);
+            background: white;
             padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             margin-bottom: 20px;
             text-align: center;
-            border: 3px solid #8B4513;
         }
         h1 { 
-            color: #FFD700; 
+            color: #667eea; 
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            font-size: 32px;
         }
         .subtitle { 
-            color: #D4AF37;
-            font-style: italic;
+            color: #666;
         }
         .main-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
         .panel {
-            background: linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%);
+            background: white;
             padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            border: 2px solid #8B4513;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         .panel h2 { 
-            color: #8B0000; 
+            color: #667eea; 
             margin-bottom: 20px; 
             font-size: 20px;
-            border-bottom: 2px solid #8B4513;
-            padding-bottom: 10px;
         }
         .upload-area {
-            border: 2px dashed #8B0000;
+            border: 2px dashed #667eea;
             border-radius: 12px;
             padding: 30px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            background: rgba(139, 0, 0, 0.05);
         }
-        .upload-area:hover { background: rgba(139, 0, 0, 0.1); }
-        .upload-area.dragging { background: rgba(220, 20, 60, 0.2); border-color: #DC143C; }
+        .upload-area:hover { background: #f8f9fa; }
+        .upload-area.dragging { background: #e3f2fd; border-color: #2196f3; }
         input[type="file"] { display: none; }
         .url-input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #8B4513;
+            border: 2px solid #e1e8ed;
             border-radius: 8px;
             margin-top: 15px;
-            background: #fff;
         }
         button {
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: #FFD700;
-            border: 2px solid #8B4513;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
             padding: 12px 24px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
             margin-top: 10px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
         button:hover { 
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
         .chat-container {
             display: flex;
@@ -228,10 +217,9 @@ HTML_TEMPLATE = """
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            background: linear-gradient(135deg, #2c1810 0%, #1a0f08 100%);
+            background: #f8f9fa;
             border-radius: 12px;
             margin-bottom: 20px;
-            border: 2px solid #8B4513;
         }
         .message {
             margin-bottom: 15px;
@@ -241,15 +229,13 @@ HTML_TEMPLATE = """
             line-height: 1.5;
         }
         .message.user {
-            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
-            color: #FFD700;
+            background: #667eea;
+            color: white;
             margin-left: auto;
-            border: 1px solid #8B4513;
         }
         .message.assistant {
-            background: linear-gradient(135deg, #f5f0e8 0%, #e8dcc8 100%);
-            color: #2c1810;
-            border: 1px solid #8B4513;
+            background: white;
+            border: 1px solid #e1e8ed;
         }
         .input-area {
             display: flex;
@@ -258,9 +244,8 @@ HTML_TEMPLATE = """
         .input-area input {
             flex: 1;
             padding: 12px;
-            border: 2px solid #8B4513;
+            border: 2px solid #e1e8ed;
             border-radius: 8px;
-            background: #fff;
         }
         .input-area button {
             width: auto;
@@ -272,55 +257,50 @@ HTML_TEMPLATE = """
             border-radius: 8px;
             margin-top: 10px;
             display: none;
-            border: 2px solid;
         }
         .status.active { display: block; }
         .status.success { 
-            background: #90EE90; 
-            color: #006400;
-            border-color: #228B22;
+            background: #e8f5e9; 
+            color: #388e3c;
         }
         .status.error { 
-            background: #FFB6C1; 
-            color: #8B0000;
-            border-color: #DC143C;
+            background: #ffebee; 
+            color: #d32f2f;
         }
         .status.info { 
-            background: #87CEEB; 
-            color: #00008B;
-            border-color: #4169E1;
+            background: #e3f2fd; 
+            color: #1976d2;
         }
         .stats {
-            background: rgba(139, 69, 19, 0.1);
+            background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
-            border: 1px solid #8B4513;
         }
         .stats h3 { 
             font-size: 14px; 
             margin-bottom: 10px;
-            color: #8B0000;
+            color: #667eea;
         }
         .stats p { 
             font-size: 13px; 
-            color: #2c1810;
+            color: #666;
         }
         .tips {
-            background: rgba(255, 215, 0, 0.1);
+            background: #e3f2fd;
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
-            border: 2px solid #FFD700;
+            border-left: 4px solid #2196f3;
         }
         .tips h3 {
-            color: #8B0000;
+            color: #1976d2;
             font-size: 14px;
             margin-bottom: 10px;
         }
         .tips ul {
             margin-left: 20px;
-            color: #2c1810;
+            color: #1976d2;
             font-size: 13px;
         }
         .tips li {
@@ -344,13 +324,13 @@ HTML_TEMPLATE = """
                 
                 <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                     <p>📜 Upload SRD Documents</p>
-                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                    <p style="font-size: 12px; color: #999; margin-top: 10px;">
                         TXT, PDF, HTML files
                     </p>
                 </div>
                 <input type="file" id="fileInput" accept=".txt,.pdf,.html,.htm" multiple>
                 
-                <p style="margin: 20px 0; text-align: center; color: #8B4513; font-weight: bold;">OR</p>
+                <p style="margin: 20px 0; text-align: center; color: #999;">OR</p>
                 
                 <input type="url" id="urlInput" class="url-input" 
                        placeholder="https://www.5esrd.com/...">
@@ -543,7 +523,7 @@ HTML_TEMPLATE = """
                 thinkingMsg.textContent = data.response;
             } catch (err) {
                 thinkingMsg.textContent = `⚠️ Error: ${err.message}`;
-                thinkingMsg.style.color = '#8B0000';
+                thinkingMsg.style.color = '#d32f2f';
             }
             
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
