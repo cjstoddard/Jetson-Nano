@@ -237,6 +237,52 @@ HTML_TEMPLATE = """
             background: white;
             border: 1px solid #e1e8ed;
         }
+        .message h1, .message h2, .message h3 {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        .message h1 { font-size: 20px; }
+        .message h2 { font-size: 18px; }
+        .message h3 { font-size: 16px; }
+        .message ul, .message ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .message li {
+            margin: 5px 0;
+        }
+        .message p {
+            margin: 8px 0;
+        }
+        .message code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .message pre {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .message pre code {
+            background: none;
+            padding: 0;
+        }
+        .message strong {
+            font-weight: 600;
+            color: #333;
+        }
+        .message blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+            margin: 10px 0;
+            color: #666;
+        }
         .input-area {
             display: flex;
             gap: 10px;
@@ -361,16 +407,16 @@ HTML_TEMPLATE = """
                 <div class="chat-container">
                     <div class="messages" id="messages">
                         <div class="message assistant">
-                            Greetings, adventurer! I am your D&D 5th Edition assistant. Upload the SRD or ingest from 5esrd.com, then ask me about:
-                            <br><br>
-                            • Rules & mechanics<br>
-                            • Spell descriptions & effects<br>
-                            • Monster stats & abilities<br>
-                            • Character creation & leveling<br>
-                            • Combat procedures<br>
-                            • Conditions & status effects<br>
-                            <br>
-                            Example: "How does the Fireball spell work?" or "What are a Beholder's abilities?"
+                            <p><strong>Greetings, adventurer!</strong> I am your D&D 5th Edition assistant. Upload the SRD or ingest from 5esrd.com, then ask me about:</p>
+                            <ul>
+                                <li>Rules & mechanics</li>
+                                <li>Spell descriptions & effects</li>
+                                <li>Monster stats & abilities</li>
+                                <li>Character creation & leveling</li>
+                                <li>Combat procedures</li>
+                                <li>Conditions & status effects</li>
+                            </ul>
+                            <p><em>Example: "How does the Fireball spell work?" or "What are a Beholder's abilities?"</em></p>
                         </div>
                     </div>
                     
@@ -384,7 +430,16 @@ HTML_TEMPLATE = """
         </div>
     </div>
 
+    <!-- Markdown rendering library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <script>
+        // Configure marked for better formatting
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+        
         // File upload
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -520,7 +575,8 @@ HTML_TEMPLATE = """
                 
                 const data = await response.json();
                 
-                thinkingMsg.textContent = data.response;
+                // Render markdown as HTML
+                thinkingMsg.innerHTML = marked.parse(data.response);
             } catch (err) {
                 thinkingMsg.textContent = `⚠️ Error: ${err.message}`;
                 thinkingMsg.style.color = '#d32f2f';
