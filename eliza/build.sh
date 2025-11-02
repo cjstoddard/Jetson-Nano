@@ -129,7 +129,7 @@ if docker compose ps eliza | grep -q "Up"; then
     echo "⚠️  Important Reminders:"
     echo "   • For educational and self-exploration only"
     echo "   • NOT a replacement for professional therapy"
-    echo "   • Crisis support: Call 988 (Suicide & Crisis Lifeline)"
+    echo "   • Crisis support: Call 911 or a Suicide & Crisis Lifeline"
     echo "   • Serious concerns: See a licensed professional"
     echo ""
     echo "💡 How to Use:"
