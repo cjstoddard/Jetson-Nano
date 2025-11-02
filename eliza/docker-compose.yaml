@@ -1,0 +1,51 @@
+services:
+  ollama:
+    image: dustynv/ollama:r36.4-cu129-24.04
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - OLLAMA_KEEP_ALIVE=10m
+      - OLLAMA_NUM_GPU=1
+      - OLLAMA_MODELS=/root/.ollama/models
+    volumes:
+      - ./ollama:/root/.ollama
+    ports:
+      - "11438:11434"
+    entrypoint: ["/bin/bash","-lc"]
+    command: ["ollama serve"]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:11434/api/tags"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+    restart: unless-stopped
+
+  eliza:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.10-slim
+        
+        WORKDIR /app
+        
+        RUN pip install --no-cache-dir \
+            flask \
+            requests
+        
+        COPY eliza.py /app/
+        
+        CMD ["python", "eliza.py"]
+    
+    depends_on:
+      ollama:
+        condition: service_healthy
+    
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - MODEL=qwen2.5:3b
+    
+    ports:
+      - "8080:8081"
+    
+    restart: unless-stopped
