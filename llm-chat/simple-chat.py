@@ -1,395 +1,327 @@
 import os
-from flask import Flask, request, render_template_string, jsonify, session
-from datetime import datetime
 import requests
-import json
+from flask import Flask, request, render_template_string, jsonify
+from datetime import datetime
 
-# ------------------ Config ------------------
-OLLAMA_BASE = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-MODEL_NAME = os.getenv("MODEL_NAME", "qwen2.5:3b")
+# Configuration
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
+MODEL = os.getenv("MODEL", "gemma-3-4b")
+
+# ==============================================================================
+# SYSTEM PROMPT - Edit this to change the assistant's behavior
+# ==============================================================================
+SYSTEM_PROMPT = """You are a helpful, friendly, and knowledgeable AI assistant. 
+You provide clear, accurate, and concise responses while maintaining a conversational tone.
+
+Key behaviors:
+- Be helpful and informative
+- Keep responses concise but complete
+- Ask clarifying questions when needed
+- Admit when you don't know something
+- Be respectful and professional
+- Format responses clearly with bullet points or numbered lists when appropriate
+
+Remember: You are a general-purpose assistant here to help with a wide variety of tasks."""
+# ==============================================================================
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+
+print("=" * 60)
+print("Initializing LLM Chat")
+print("=" * 60)
+print(f"Ollama URL: {OLLAMA_BASE_URL}")
+print(f"Model: {MODEL}")
+print("=" * 60)
+print("✓ Chat is ready\n")
 
 
-# ------------------ HTML Template ------------------
+# HTML Template
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>LLM Chat - {{ model }}</title>
+    <title>LLM Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            min-height: 100vh;
             padding: 20px;
         }
-        .chat-container {
+        .container { max-width: 900px; margin: 0 auto; }
+        .header {
             background: white;
+            padding: 30px;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 800px;
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+            margin-bottom: 20px;
             text-align: center;
         }
-        .chat-header h1 { font-size: 24px; margin-bottom: 5px; }
-        .chat-header p { opacity: 0.9; font-size: 14px; }
-        .chat-messages {
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #666; font-style: italic; }
+        .chat-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+        .messages {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
             background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 20px;
         }
         .message {
-            margin-bottom: 16px;
-            display: flex;
-            animation: slideIn 0.3s;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .message.user { justify-content: flex-end; }
-        .message.assistant { justify-content: flex-start; }
-        .message-content {
-            max-width: 70%;
+            margin-bottom: 15px;
             padding: 12px 16px;
             border-radius: 12px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
+            max-width: 80%;
+            line-height: 1.6;
         }
-        .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .message.user {
+            background: #667eea;
             color: white;
+            margin-left: auto;
         }
-        .message.assistant .message-content {
+        .message.assistant {
             background: white;
-            color: #333;
             border: 1px solid #e1e8ed;
         }
-        .timestamp {
-            font-size: 11px;
-            opacity: 0.6;
-            margin-top: 4px;
-        }
-        .chat-input-area {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e1e8ed;
-        }
-        .input-container {
+        .input-area {
             display: flex;
             gap: 10px;
         }
-        #messageInput {
+        .input-area input {
             flex: 1;
-            padding: 12px 16px;
+            padding: 12px;
             border: 2px solid #e1e8ed;
-            border-radius: 24px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: border-color 0.3s;
+            border-radius: 8px;
+            font-size: 15px;
         }
-        #messageInput:focus {
+        .input-area input:focus {
             outline: none;
             border-color: #667eea;
         }
-        #sendButton {
+        .input-area button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 24px;
+            padding: 12px 30px;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
-            min-width: 80px;
         }
-        #sendButton:hover { transform: scale(1.05); }
-        #sendButton:active { transform: scale(0.95); }
-        #sendButton:disabled {
+        .input-area button:hover { transform: translateY(-2px); }
+        .input-area button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
-        .clear-button {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 16px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-top: 8px;
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
         }
-        .clear-button:hover { background: #c82333; }
-        .thinking {
-            display: none;
-            padding: 12px 16px;
-            background: white;
-            border: 1px solid #e1e8ed;
-            border-radius: 12px;
+        .controls button {
+            background: #f8f9fa;
             color: #666;
-            max-width: 70%;
+            border: 1px solid #e1e8ed;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
         }
-        .thinking.active { display: block; }
-        .thinking::after {
-            content: '...';
-            animation: dots 1.5s infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-        @media (max-width: 768px) {
-            .chat-container { height: 100vh; border-radius: 0; }
-            .message-content { max-width: 85%; }
+        .controls button:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+            color: #667eea;
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>💬 AI Chat</h1>
-            <p>Model: {{ model }}</p>
+    <div class="container">
+        <div class="header">
+            <h1>💬 LLM Chat</h1>
+            <p class="subtitle">Powered by {{ MODEL }}</p>
         </div>
         
-        <div class="chat-messages" id="messages">
-            <div class="message assistant">
-                <div class="message-content">
-                    Hello! I'm ready to chat. Ask me anything!
-                    <div class="timestamp" id="initTime"></div>
+        <div class="chat-panel">
+            <div class="controls">
+                <button onclick="clearChat()">🔄 Clear Chat</button>
+            </div>
+            
+            <div class="chat-container">
+                <div class="messages" id="messages">
+                    <div class="message assistant">
+                        Hello! I'm your AI assistant. How can I help you today?
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="Type your message..."
+                        onkeypress="if(event.key=='Enter') sendMessage()"
+                    >
+                    <button id="sendBtn" onclick="sendMessage()">Send</button>
                 </div>
             </div>
-        </div>
-        
-        <div class="chat-input-area">
-            <div class="input-container">
-                <input 
-                    type="text" 
-                    id="messageInput" 
-                    placeholder="Type your message..."
-                    autocomplete="off"
-                >
-                <button id="sendButton" onclick="sendMessage()">Send</button>
-            </div>
-            <button class="clear-button" onclick="clearChat()">🗑️ Clear Chat</button>
         </div>
     </div>
 
     <script>
-        // Initialize timestamp
-        document.getElementById('initTime').textContent = new Date().toLocaleTimeString();
-        
-        // Focus input on load
-        document.getElementById('messageInput').focus();
-        
-        // Enter to send
-        document.getElementById('messageInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-        
-        function addMessage(content, isUser) {
-            const messagesDiv = document.getElementById('messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
-            
-            const time = new Date().toLocaleTimeString();
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    ${escapeHtml(content)}
-                    <div class="timestamp">${time}</div>
-                </div>
-            `;
-            
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-        
-        function showThinking() {
-            const messagesDiv = document.getElementById('messages');
-            const thinkingDiv = document.createElement('div');
-            thinkingDiv.className = 'message assistant';
-            thinkingDiv.innerHTML = '<div class="thinking active">Thinking</div>';
-            thinkingDiv.id = 'thinking';
-            messagesDiv.appendChild(thinkingDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-        
-        function hideThinking() {
-            const thinking = document.getElementById('thinking');
-            if (thinking) thinking.remove();
-        }
+        let conversationHistory = [];
         
         async function sendMessage() {
             const input = document.getElementById('messageInput');
-            const button = document.getElementById('sendButton');
             const message = input.value.trim();
             
             if (!message) return;
             
-            // Disable input
-            input.disabled = true;
-            button.disabled = true;
-            button.textContent = '...';
+            const messagesDiv = document.getElementById('messages');
+            const sendBtn = document.getElementById('sendBtn');
             
             // Add user message
-            addMessage(message, true);
-            input.value = '';
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.textContent = message;
+            messagesDiv.appendChild(userMsg);
             
-            // Show thinking
-            showThinking();
+            input.value = '';
+            input.disabled = true;
+            sendBtn.disabled = true;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            // Add to history
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+            
+            // Add thinking message
+            const thinkingMsg = document.createElement('div');
+            thinkingMsg.className = 'message assistant';
+            thinkingMsg.textContent = 'Thinking...';
+            messagesDiv.appendChild(thinkingMsg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
             
             try {
                 const response = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify({ 
+                        message: message,
+                        history: conversationHistory
+                    })
                 });
                 
                 const data = await response.json();
+                thinkingMsg.textContent = data.response;
                 
-                hideThinking();
+                // Add to history
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: data.response
+                });
                 
-                if (data.response) {
-                    addMessage(data.response, false);
-                } else {
-                    addMessage('Error: No response from model', false);
-                }
             } catch (err) {
-                hideThinking();
-                addMessage('Error: ' + err.message, false);
-            } finally {
-                input.disabled = false;
-                button.disabled = false;
-                button.textContent = 'Send';
-                input.focus();
+                thinkingMsg.textContent = 'Error: Unable to get response. Please try again.';
+                thinkingMsg.style.color = '#d32f2f';
             }
+            
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
         
         function clearChat() {
-            if (confirm('Clear chat history?')) {
-                fetch('/clear', { method: 'POST' });
+            if (confirm('Clear the conversation?')) {
+                conversationHistory = [];
                 const messagesDiv = document.getElementById('messages');
                 messagesDiv.innerHTML = `
                     <div class="message assistant">
-                        <div class="message-content">
-                            Chat cleared. How can I help you?
-                            <div class="timestamp">${new Date().toLocaleTimeString()}</div>
-                        </div>
+                        Hello! I'm your AI assistant. How can I help you today?
                     </div>
                 `;
             }
         }
         
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        // Focus on input
+        document.getElementById('messageInput').focus();
     </script>
 </body>
 </html>
-"""
+""".replace('{{ MODEL }}', MODEL)
 
 
-# ------------------ Routes ------------------
 @app.route('/')
 def home():
-    return render_template_string(HTML_TEMPLATE, model=MODEL_NAME)
+    return render_template_string(HTML_TEMPLATE)
 
 
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
         data = request.get_json()
-        user_message = data.get('message', '').strip()
+        message = data.get('message', '')
+        history = data.get('history', [])
         
-        if not user_message:
-            return jsonify({'error': 'No message provided'}), 400
+        if not message:
+            return jsonify({'response': 'Please enter a message.'})
         
-        # Get or initialize conversation history
-        if 'history' not in session:
-            session['history'] = []
+        print(f"\nUser: {message}")
         
-        # Add user message to history
-        session['history'].append({
-            'role': 'user',
-            'content': user_message
-        })
+        # Build conversation context
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         
-        # Call Ollama API
+        # Add history (keep last 10 exchanges)
+        for msg in history[-20:]:
+            messages.append(msg)
+        
+        # Get response from Ollama
         response = requests.post(
-            f"{OLLAMA_BASE}/api/chat",
+            f"{OLLAMA_BASE_URL}/api/chat",
             json={
-                'model': MODEL_NAME,
-                'messages': session['history'],
-                'stream': False
+                "model": MODEL,
+                "messages": messages,
+                "stream": False,
+                "options": {
+                    "temperature": 0.7,
+                    "top_p": 0.9
+                }
             },
-            timeout=120
+            timeout=60
         )
         
-        if response.status_code != 200:
-            return jsonify({'error': f'Ollama error: {response.text}'}), 500
-        
+        response.raise_for_status()
         result = response.json()
         assistant_message = result['message']['content']
         
-        # Add assistant response to history
-        session['history'].append({
-            'role': 'assistant',
-            'content': assistant_message
-        })
-        
-        # Keep only last 10 messages to avoid token overflow
-        if len(session['history']) > 20:
-            session['history'] = session['history'][-20:]
-        
-        session.modified = True
+        print(f"Assistant: {assistant_message}\n")
         
         return jsonify({'response': assistant_message})
     
-    except requests.exceptions.Timeout:
-        return jsonify({'error': 'Request timed out'}), 504
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
-@app.route('/clear', methods=['POST'])
-def clear():
-    session['history'] = []
-    session.modified = True
-    return jsonify({'status': 'cleared'})
+        print(f"Error in chat: {e}")
+        return jsonify({
+            'response': "I apologize, but I'm having trouble processing your request right now."
+        })
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("Simple LLM Chat Interface")
-    print("=" * 60)
-    print(f"Model: {MODEL_NAME}")
-    print(f"Ollama: {OLLAMA_BASE}")
-    print("Starting on http://0.0.0.0:8080")
-    print("=" * 60)
-    print()
-    
-    app.run(host="0.0.0.0", port=8080, debug=False, threaded=True)
+    print("\n" + "=" * 60)
+    print("Starting LLM Chat on http://0.0.0.0:8080")
+    print("=" * 60 + "\n")
+    app.run(host="0.0.0.0", port=8080, debug=False)
