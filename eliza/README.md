@@ -2,7 +2,7 @@
 
 This app is an offshoot of the Eliza program, originally wrtten in 1964 by Joseph Weizenbaum. [Eliza](https://en.wikipedia.org/wiki/ELIZA) is widely considered the worlds first chatbot and simulated a psychotherapist of the Rogerian school.
 
-This Eliza is of course much better at what it does, however, of all of these projects, this one works the best. With the others I was not terribly worried about how well they worked, as they were just proof of concept projects, or a place to start a bigger more interesting project. This one however, I do want it to work as well as possble. I wish I could have used qwen2.5:7b instead of qwen2.5:3b, it would have been a better choice in every respect, but I could not make it fit in the Jetson Nano along with the Flask web interface. I would never suggest Eliza for anything serious, but if you just need someone to talk to, Eliza does do a pretty good imitation of an active listener and simulates empathy pretty well. 
+This Eliza is of course much better at what it does, and of all of these projects, this one works the best. With the others I was not terribly worried about how well they worked, as they were just proof of concept projects, or a place to start a bigger more interesting project. This one however, I do want it to work as well as possble. I wish I could have used qwen2.5:7b instead of qwen2.5:3b, it would have been a better choice in every respect, but I could not make it fit in the Jetson Nano along with the Flask web interface. I would never suggest Eliza for anything serious, but if you just need someone to talk to, Eliza does do a pretty good imitation of an active listener and simulates empathy pretty well. 
 
 ----------
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
