@@ -61,6 +61,26 @@ If you are still  having trouble geting one of these to work, chances are good y
 
 Once open, if you press 4, it will give you specific information on memory usage, more importantly, on this screen if you press c, it will clear the memory cache. Do not do this while a container is running, it might end badly. Clearing the cache between using these programs will free a couple hundred MB of RAM and is a good best practice.
 
+If you are still having trouble, disbale the zram and use a swap file. I suggest this as zrom uses actual RAM and disabling it frees up a couple of hundred megabytes of RAM. By using a swap file, you will instead me using the storage for swap. Keep in mind this adds wear and tear to you storage.
+
+> sudo systemctl disable nvzramconfig
+
+> sudo dd if=/dev/zero of=/swapfile bs=1M count=16384
+
+> sudo chmod 600 /swapfile
+
+> sudo mkswap /swapfile
+
+> sudo swapon /swapfile
+
+> sudo nano /etc/fstab
+
+Add this line to the end;
+
+> /swapfile none swap sw 0 0
+
+Save and exit, then reboot the system.
+
 ----------
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
