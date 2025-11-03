@@ -59,7 +59,11 @@ If you are still  having trouble geting one of these to work, chances are good y
 
 > jtop
 
-Once open, if you press 4, it will give you specific information on memory usage, more importantly, on this screen if you press c, it will clear the memory cache. Do not do this while a container is running, it might end badly. Clearing the cache between using these programs will free a couple hundred MB of RAM and is a good best practice.
+Once open, if you press 4, it will give you specific information on memory usage, more importantly, on this screen if you press c, it will clear the memory cache. Do not do this while a container is running, it might end badly. Alternatively, you can just run this command;
+
+> sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'
+
+Clearing the cache between using these programs will free a couple hundred MB of RAM and is a good best practice.
 
 If you are still having trouble, disbale the zram and use a swap file. I suggest this as zram uses actual RAM and disabling it frees up a couple of hundred megabytes of RAM. By using a swap file, you will instead be using the storage for swap. Keep in mind this adds wear and tear to you storage and will slow responses down on larger models.
 
